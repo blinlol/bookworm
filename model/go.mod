@@ -1,4 +1,4 @@
-module github.com/blinlol/bookworm/data
+module github.com/blinlol/bookworm/model
 
 go 1.23.0
 

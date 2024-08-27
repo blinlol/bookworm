@@ -2,6 +2,8 @@ package dao
 
 import (
 	"testing"
+
+	"github.com/blinlol/bookworm/model"
 )
 
 
@@ -24,7 +26,7 @@ func TestAddFindDeleteFind(t *testing.T){
 func TestAddQuote(t *testing.T){
 	AddBook("A", "B")
 	b := FindBook("A", "B")
-	q := &Quote{Text: "qwerty"}
+	q := &model.Quote{Text: "qwerty"}
 	AddQuote(b, q)
 	b = FindBook("A", "B")
 	if len(b.Quotes) != 1 || *(b.Quotes[0]) != *q {
