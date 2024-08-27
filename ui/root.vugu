@@ -1,0 +1,15 @@
+<div>
+    pupupu
+</div>
+<<script type="application/x-go">
+
+import "github.com/blinlol/bookworm/data/dao"
+
+type Root struct{
+    Books dao.Books
+}
+
+func (c *Root)PullBooks() {
+    
+}
+</script>
