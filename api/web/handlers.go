@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"bookworm/data/dao"
+	"github.com/blinlol/bookworm/data/dao"
 )
 
 

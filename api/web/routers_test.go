@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"bookworm/data/dao"
+	"github.com/blinlol/bookworm/data/dao"
 )
 
 
