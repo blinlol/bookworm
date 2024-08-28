@@ -3,57 +3,109 @@
     <div vg-for="c.Books">
         <span vg-content='value'></span>
     </div>
+    <div>
+        <form>
+        <vgform:Input type="text" :Value='vgform.StringPtr{&c.Form.Title}'></vgForm:Input>
+        <vgform:Input type="text" :Value='vgform.StringPtr{&c.Form.Author}'></vgForm:Input>
+        <button type="submit" @click="c.SubmitForm(event)">
+        </form>
+    </div>
     <button @click="c.HandleClick(event)">pupupu</button>
 </div>
 <script type="application/x-go">
 
 import (
+    "bytes"
     "encoding/json"
     "net/http"
+
+    "github.com/vugu/vugu/vgform"
+
     "github.com/blinlol/bookworm/model"
 )
 
 type Root struct {
+    Form Form
     Books []model.Book     `vugu:data`
     ApiURL string
     IsLoading bool          `vugu:data`
 }
 
+type Form struct {
+    Title string
+    Author string
+}
 
-var apiurl string = "http://127.0.0.1:81/api"
+var apiurl string = "http://127.0.0.1:8081/api"
 
-func (c *Root) HandleClick(event vugu.DOMEvent) {
 
-    // c.ApiURL = "localhost:8080"
-    
+func fetchBooks() *[]model.Book {
+    res, err := http.Get(apiurl + "/books")
+    if err != nil {
+        log.Printf("Error fetch()ing: %v", err)
+        return nil
+    }
+    defer res.Body.Close()
+
+    var books []model.Book
+    err = json.NewDecoder(res.Body).Decode(&books)
+    if err != nil {
+        log.Printf("Error JSON decoding: %v", err)
+        return nil
+    }
+    return &books
+}
+
+func (c *Root) HandleClick(event vugu.DOMEvent) {    
 
     ee := event.EventEnv()
 
     go func() {
-
         ee.Lock()
         c.IsLoading = true
         ee.UnlockRender()
 
-        res, err := http.Get(apiurl + "/books")
-        if err != nil {
-            log.Printf("Error fetch()ing: %v", err)
-            return
-        }
-        defer res.Body.Close()
-
-        var books []model.Book
-        err = json.NewDecoder(res.Body).Decode(&books)
-        if err != nil {
-            log.Printf("Error JSON decoding: %v", err)
+        books := fetchBooks()
+        if books == nil {
             return
         }
 
         ee.Lock()
         defer ee.UnlockRender()
-        c.Books = books
+        c.Books = *books
         c.IsLoading = false
+    }()
+}
 
+func (c *Root) SubmitForm(event vugu.DOMEvent) {
+    ee := event.EventEnv()
+    go func(){
+        ee.RLock()
+        title := c.Form.Title
+        author := c.Form.Author
+        ee.RUnlock()
+
+        book := model.Book{Title: title, Author: author}
+        marshaled, _ := json.Marshal(book)
+        // TODO: check response code
+        _, err := http.Post(
+            apiurl + "/books/add",
+            "application/json",
+            bytes.NewReader(marshaled),
+        )
+        if err != nil {
+            log.Printf("Error while sending form: %v", err)
+            return
+        }
+        
+        books := fetchBooks()
+        if books == nil {
+            return
+        }
+
+        ee.Lock()
+        c.Books = *books
+        ee.UnlockOnly()
     }()
 }
 

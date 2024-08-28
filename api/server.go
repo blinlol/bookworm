@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gin-gonic/gin"
+
 	"github.com/blinlol/bookworm/api/web"
 )
 
@@ -12,7 +13,7 @@ func main(){
 	router := gin.Default()
 
 	// add middlewares
-	router.Use(web.CORS())
+	router.Use(web.CORSMiddleware())
 
 	// add routes
 	router.GET("/ping", web.Pong)

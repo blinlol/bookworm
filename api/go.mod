@@ -4,6 +4,7 @@ go 1.23.0
 
 require (
 	github.com/blinlol/bookworm/data v0.0.0-20240827081416-4713f99f7568
+	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/stretchr/testify v1.9.0
 	go.uber.org/zap v1.27.0
