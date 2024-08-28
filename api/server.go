@@ -9,7 +9,7 @@ import (
 )
 
 func main(){
-	address := "localhost:8081"
+	address := ":8081"
 	router := gin.Default()
 
 	// add middlewares
