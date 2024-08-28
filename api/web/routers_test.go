@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/blinlol/bookworm/data/dao"
@@ -14,7 +16,7 @@ import (
 
 
 func TestPong(t *testing.T){
-	r := SetupRouter()
+	r := gin.Default()
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -25,7 +27,7 @@ func TestPong(t *testing.T){
 
 
 func TestBooks(t *testing.T){
-	r := SetupRouter()
+	r := gin.Default()
 	r = BookRoutes(r)
 	w := httptest.NewRecorder()
 
@@ -33,7 +35,7 @@ func TestBooks(t *testing.T){
 	raw, _ := json.Marshal(b)
 	req, _ := http.NewRequest(
 		"POST",
-		"/books/add",
+		"/api/books/add",
 		bytes.NewReader(raw),
 	)
 	r.ServeHTTP(w, req)
@@ -49,7 +51,7 @@ func TestBooks(t *testing.T){
 
 	req, _ = http.NewRequest(
 		"DELETE",
-		"/book/" + resp_b.Id,
+		"/api/book/" + resp_b.Id,
 		nil,
 	)
 	r.ServeHTTP(w, req)

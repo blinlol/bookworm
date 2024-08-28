@@ -17,6 +17,9 @@ var logger *zap.Logger
 
 func GetBooks(c *gin.Context){
 	books := dao.AllBooks()
+	if books == nil {
+		books = make([]*dao.Book, 0)
+	}
 	c.IndentedJSON(
 		http.StatusOK,
 		books,

@@ -1,15 +1,60 @@
 <div>
-    pupupu
+    <div vg-if="c.IsLoading">Loading...</div>
+    <div vg-for="c.Books">
+        <span vg-content='value'></span>
+    </div>
+    <button @click="c.HandleClick(event)">pupupu</button>
 </div>
-<<script type="application/x-go">
+<script type="application/x-go">
 
-import "github.com/blinlol/bookworm/data/dao"
+import (
+    "encoding/json"
+    "net/http"
+    "github.com/blinlol/bookworm/model"
+)
 
-type Root struct{
-    Books dao.Books
+type Root struct {
+    Books []model.Book     `vugu:data`
+    ApiURL string
+    IsLoading bool          `vugu:data`
 }
 
-func (c *Root)PullBooks() {
+
+var apiurl string = "http://127.0.0.1:81/api"
+
+func (c *Root) HandleClick(event vugu.DOMEvent) {
+
+    // c.ApiURL = "localhost:8080"
     
+
+    ee := event.EventEnv()
+
+    go func() {
+
+        ee.Lock()
+        c.IsLoading = true
+        ee.UnlockRender()
+
+        res, err := http.Get(apiurl + "/books")
+        if err != nil {
+            log.Printf("Error fetch()ing: %v", err)
+            return
+        }
+        defer res.Body.Close()
+
+        var books []model.Book
+        err = json.NewDecoder(res.Body).Decode(&books)
+        if err != nil {
+            log.Printf("Error JSON decoding: %v", err)
+            return
+        }
+
+        ee.Lock()
+        defer ee.UnlockRender()
+        c.Books = books
+        c.IsLoading = false
+
+    }()
 }
+
 </script>

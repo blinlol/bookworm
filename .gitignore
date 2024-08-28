@@ -23,4 +23,9 @@ go.work.sum
 
 # env file
 .env
+
 .vscode
+todo
+
+ui/bin
+ui/*_gen.go
