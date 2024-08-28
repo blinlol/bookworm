@@ -29,3 +29,4 @@ todo
 
 ui/bin
 ui/*_gen.go
+ui/dist
