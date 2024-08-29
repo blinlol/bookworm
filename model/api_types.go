@@ -19,5 +19,5 @@ type AddBookResponse struct {
 
 
 type PingResponse struct {
-	Message string
+	Message string	`json:"message"`
 }
