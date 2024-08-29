@@ -1,11 +1,13 @@
 package main
 
 
-type GetBooksRequest struct {
+type ErrorResponse struct {
+	Message string	`json:"message"`
 }
 
+
 type GetBooksResponse struct {
-	Books []Book	`json:"books"`
+	Books []*Book	`json:"books"`
 }
 
 
