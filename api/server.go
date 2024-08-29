@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,12 @@ import (
 )
 
 func main(){
-	address := ":8081"
+	address := os.Getenv("API_PORT")
+	if address == "" {
+		address = "8081"
+		log.Println("API_PORT doesn't set. Use port =", address)
+	}
+	address = ":" + address
 	router := gin.Default()
 
 	// add middlewares

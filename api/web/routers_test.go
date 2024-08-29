@@ -11,7 +11,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/blinlol/bookworm/data/dao"
+	"github.com/blinlol/bookworm/model"
+	"github.com/blinlol/bookworm/model/dao"
 )
 
 
@@ -31,7 +32,7 @@ func TestBooks(t *testing.T){
 	r = BookRoutes(r)
 	w := httptest.NewRecorder()
 
-	b := dao.Book{Title: "title", Author: "author"}
+	b := model.Book{Title: "title", Author: "author"}
 	raw, _ := json.Marshal(b)
 	req, _ := http.NewRequest(
 		"POST",
@@ -41,7 +42,7 @@ func TestBooks(t *testing.T){
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	var resp_b dao.Book
+	var resp_b model.Book
 	err := json.Unmarshal(w.Body.Bytes(), &resp_b)
 	if err != nil {
 		t.Error(err)

@@ -1,0 +1,19 @@
+services:
+  mongo:
+    image: mongodb/mongodb-community-server:latest
+    expose:
+      - 27017
+  api:
+    build: ./api
+    ports:
+      - 8081:8081
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+    env_file:
+      - docker.env
+  ui:
+    build: ./ui
+    ports:
+      - 8877:8877
+    env_file:
+      - docker.env

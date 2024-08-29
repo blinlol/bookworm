@@ -8,7 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
-	"github.com/blinlol/bookworm/data/dao"
+	"github.com/blinlol/bookworm/model"
+	"github.com/blinlol/bookworm/model/dao"
 )
 
 
@@ -18,7 +19,7 @@ var logger *zap.Logger
 func GetBooks(c *gin.Context){
 	books := dao.AllBooks()
 	if books == nil {
-		books = make([]*dao.Book, 0)
+		books = make([]*model.Book, 0)
 	}
 	c.IndentedJSON(
 		http.StatusOK,
@@ -28,7 +29,7 @@ func GetBooks(c *gin.Context){
 
 
 func AddBook(c *gin.Context){
-	var book dao.Book
+	var book model.Book
 	err := json.NewDecoder(c.Request.Body).Decode(&book)
 	if err != nil {
 		logger.Sugar().Errorln(err)
