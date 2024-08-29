@@ -23,12 +23,14 @@ func AllBooks() []*model.Book {
 	coll := getCollection()
 	cursor, err := coll.Find(DBContext, bson.D{})
 	if err != nil {
-		DBLogger.Sugar().Errorln("error while find all books")
+		DBLogger.Sugar().Errorln("error while find all books:", err)
+		return nil
 	}
 	var books []*model.Book
 	err = cursor.All(DBContext, &books)
 	if err != nil {
 		DBLogger.Sugar().Errorln(err)
+		return nil
 	}
 	return books
 }

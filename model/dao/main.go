@@ -4,6 +4,8 @@ import (
 	// 	"go.mongodb.org/mongo-driver/bson"
 	"context"
 	"log"
+	"os"
+	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -34,8 +36,15 @@ func initLogger(){
 
 func initClient(){
 	var err error
-	uri := "mongodb://localhost:27017"
-	DBClient, err = mongo.Connect(DBContext, options.Client().ApplyURI(uri))
+	uri := os.Getenv("MONGO_URI")
+	if uri == "" {
+		uri = "mongodb://localhost:27017"
+		DBLogger.Sugar().Warnln("MONGO_URI doesn't set. Use uri =", uri)
+	}
+	DBClient, err = mongo.Connect(
+		DBContext,
+		options.Client().ApplyURI(uri).SetConnectTimeout(time.Second),
+	)
 	if err != nil {
 		DBLogger.Sugar().Fatalln(err)
 	}
