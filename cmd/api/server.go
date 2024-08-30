@@ -6,7 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/blinlol/bookworm/api/web"
+	"github.com/blinlol/bookworm/cmd/api/web"
+    // "bookworm/api/web"
 )
 
 func main(){

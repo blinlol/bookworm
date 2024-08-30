@@ -4,7 +4,9 @@ services:
     expose:
       - 27017
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     ports:
       - 8081:8081
     environment:
@@ -12,7 +14,9 @@ services:
     env_file:
       - docker.env
   ui:
-    build: ./ui
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
     ports:
       - 8877:8877
     env_file:

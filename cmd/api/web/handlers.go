@@ -10,6 +10,8 @@ import (
 
 	"github.com/blinlol/bookworm/model"
 	"github.com/blinlol/bookworm/model/dao"
+	// "bookworm/model"
+    // "bookworm/model/dao"
 )
 
 
@@ -21,29 +23,30 @@ func GetBooks(c *gin.Context){
 	if books == nil {
 		books = make([]*model.Book, 0)
 	}
+	body := model.GetBooksResponse{Books: books}
 	c.IndentedJSON(
 		http.StatusOK,
-		books,
+		body,
 	)
 }
 
 
 func AddBook(c *gin.Context){
-	var book model.Book
-	err := json.NewDecoder(c.Request.Body).Decode(&book)
+	var req model.AddBookRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
 	if err != nil {
 		logger.Sugar().Errorln(err)
 		c.JSON(
 			http.StatusBadRequest,
-			gin.H{"message": err},
+			model.ErrorResponse{Message: err.Error()},
 		)
 	}
 
-	b := dao.AddBook(book.Title, book.Author)
+	b := dao.AddBook(req.Book.Title, req.Book.Author)
 	if b != nil {
 		c.JSON(
 			http.StatusOK,
-			*b,
+			model.AddBookResponse{Book: *b},
 		)
 	}
 }
@@ -57,9 +60,10 @@ func DeleteBook(c *gin.Context) {
 
 
 func Pong(c *gin.Context){
+	pong := model.PingResponse{Message: "pong"}
 	c.JSON(
 		http.StatusOK,
-		gin.H{"message": "pong"},
+		pong,
 	)
 }
 
