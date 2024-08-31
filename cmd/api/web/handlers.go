@@ -2,6 +2,7 @@ package web
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"log"
 
@@ -40,7 +41,7 @@ func AddBook(c *gin.Context){
 		)
 	}
 
-	b := dao.AddBook(req.Book.Title, req.Book.Author)
+	b := dao.AddBook(&req.Book)
 	if b != nil {
 		c.JSON(
 			http.StatusOK,
@@ -76,6 +77,39 @@ func DeleteBook(c *gin.Context) {
 	id := c.Param("id")
 	dao.DeleteBookById(id)
 	c.JSON(http.StatusOK, gin.H{})
+}
+
+
+func UpdateBook(c *gin.Context) {
+	id := c.Param("id")
+	var req model.UpdateBookRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	if err != nil {
+		logger.Sugar().Infoln(err)
+		c.JSON(
+			http.StatusBadRequest,
+			model.ErrorResponse{Message: fmt.Sprintf("%v", err)},
+		)
+	} else if id != req.Book.Id {
+		message := "id param and req.Book.Id not equal"
+		logger.Sugar().Infoln(message)
+		c.JSON(
+			http.StatusBadRequest,
+			model.ErrorResponse{Message: message},
+		)
+	} else {
+		upd_b := dao.UpdateBook(&req.Book)
+		if upd_b == nil {
+			message := "error while book updating"
+			logger.Sugar().Infoln(message)
+			c.JSON(
+				http.StatusBadRequest,
+				model.ErrorResponse{Message: message},
+			)
+		} else {
+			c.Status(http.StatusOK)
+		}
+	}
 }
 
 

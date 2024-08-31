@@ -6,7 +6,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/blinlol/bookworm/model"
-    // "bookworm/model"
 )
 
 
@@ -19,7 +18,7 @@ func getCollection() * mongo.Collection{
 	return DBClient.Database(DBName).Collection(collectionName)
 }
 
-
+// return nil if error
 func AllBooks() []*model.Book {
 	coll := getCollection()
 	cursor, err := coll.Find(DBContext, bson.D{})
@@ -36,25 +35,7 @@ func AllBooks() []*model.Book {
 	return books
 }
 
-
-func FindBook(title string, author string) *model.Book {
-	coll := getCollection()
-	res := coll.FindOne(
-		DBContext,
-		bson.D{{"title", title}, {"author", author}},
-	)
-
-	var book model.Book
-	err := res.Decode(&book)
-	if err == mongo.ErrNoDocuments {
-		return nil
-	} else if err != nil {
-		DBLogger.Sugar().Fatalln(err)		
-	}
-	return &book
-}
-
-
+// return nil if document not found or error
 func FindBookById(id string) *model.Book {
 	res := getCollection().FindOne(
 		DBContext,
@@ -71,18 +52,37 @@ func FindBookById(id string) *model.Book {
 	return &b
 }
 
+// return nil if document not found or error
+func FindBook(title string, author string) *model.Book {
+	coll := getCollection()
+	res := coll.FindOne(
+		DBContext,
+		bson.D{{"title", title}, {"author", author}},
+	)
 
-func AddBook(title string, author string) *model.Book {
-	if b := FindBook(title, author); b != nil {
+	var book model.Book
+	err := res.Decode(&book)
+	if err == mongo.ErrNoDocuments {
+		return nil
+	} else if err != nil {
+		DBLogger.Sugar().Errorln(err)
+		return nil
+	}
+	return &book
+}
+
+// return added book or nil if error
+func AddBook(b *model.Book) *model.Book {
+	if b := FindBook(b.Title, b.Author); b != nil {
 		return b
 	}
 	coll := getCollection()
 	res, err := coll.InsertOne(
 		DBContext,
 		model.Book{
-			Id: primitive.NewObjectID().Hex(),
-			Title: title,
-			Author: author,
+			Id: "book-" + primitive.NewObjectID().Hex(),
+			Title: b.Title,
+			Author: b.Author,
 			Quotes: make([]*model.Quote, 0),
 		},
 	)
@@ -90,17 +90,12 @@ func AddBook(title string, author string) *model.Book {
 		DBLogger.Sugar().Errorln(err)
 		return nil
 	}
-	// id := res.InsertedID.(primitive.ObjectID)
 	return FindBookById(res.InsertedID.(string))
 }
 
 
-func DeleteBook(title string, author string) {
-	coll := getCollection()
-	_, err := coll.DeleteOne(DBContext, bson.D{{"title", title}, {"author", author}})
-	if err != nil {
-		DBLogger.Sugar().Fatalln(err)
-	}
+func DeleteBook(b *model.Book) {
+	DeleteBookById(b.Id)
 }
 
 
@@ -117,6 +112,25 @@ func DeleteBookById(id string) {
 }
 
 
+func UpdateBook(b *model.Book) *model.Book {
+	_, err := getCollection().UpdateByID(
+		DBContext,
+		b.Id,
+		bson.D{{"$set", bson.D{
+				{"title", b.Title},
+				{"author", b.Author},
+				{"quotes", b.Quotes},
+			},
+		}},
+	)
+	if err != nil {
+		DBLogger.Sugar().Error(err)
+		return nil
+	}
+	return FindBookById(b.Id)
+}
+
+// should use UpdateBook
 func AddQuote(book *model.Book, quote *model.Quote) {
 	book.Quotes = append(book.Quotes, quote)
 	_, err := getCollection().UpdateByID(
@@ -128,5 +142,3 @@ func AddQuote(book *model.Book, quote *model.Quote) {
 		DBLogger.Sugar().Error(err)
 	}
 }
-
-

@@ -25,6 +25,11 @@ type AddBookResponse struct {
 }
 
 
+type UpdateBookRequest struct {
+	Book Book	`json:"book"`
+}
+
+
 type PingResponse struct {
 	Message string	`json:"message"`
 }

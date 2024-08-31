@@ -32,7 +32,8 @@ func TestBooks(t *testing.T){
 
 	// add book
 	w := httptest.NewRecorder()
-	b := model.AddBookRequest{Book: model.Book{Title: "title", Author: "author"}}
+	book := model.Book{Title: "title", Author: "author"}
+	b := model.AddBookRequest{Book: book}
 	raw, _ := json.Marshal(b)
 	req, _ := http.NewRequest(
 		"POST",
@@ -49,6 +50,7 @@ func TestBooks(t *testing.T){
 	}
 	assert.Equal(t, b.Book.Author, resp_b.Book.Author)
 	assert.Equal(t, b.Book.Title, resp_b.Book.Title)
+	book = resp_b.Book
 
 	// find existing book
 	w = httptest.NewRecorder()
@@ -82,6 +84,21 @@ func TestBooks(t *testing.T){
 	if err != nil {
 		t.Error(err)
 	}
+
+	// update book
+	w = httptest.NewRecorder()
+	id = book.Id
+	book.Title = "12345"
+	req_b := model.UpdateBookRequest{Book: book}
+	raw, _ = json.Marshal(req_b)
+	req, _ = http.NewRequest(
+		"PUT",
+		"/api/book/" + id,
+		bytes.NewReader(raw),		
+	)
+	r.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, book, *dao.FindBookById(book.Id))
 
 	// delete book
 	w = httptest.NewRecorder()
