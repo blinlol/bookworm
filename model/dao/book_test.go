@@ -7,9 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-
-func TestAddFindDeleteFind(t *testing.T){
-	new_b := &model.Book{Title:"A", Author:"B"}
+func TestAddFindDeleteFind(t *testing.T) {
+	new_b := &model.Book{Title: "A", Author: "B"}
 	AddBook(new_b)
 	b := FindBook("A", "B")
 	if b == nil {
@@ -24,8 +23,7 @@ func TestAddFindDeleteFind(t *testing.T){
 	}
 }
 
-
-func TestAddQuote(t *testing.T){
+func TestAddQuote(t *testing.T) {
 	new_b := &model.Book{Title: "A", Author: "B"}
 	AddBook(new_b)
 	b := FindBook("A", "B")
@@ -38,8 +36,7 @@ func TestAddQuote(t *testing.T){
 	DeleteBook(new_b)
 }
 
-
-func TestFindAll(t *testing.T){
+func TestFindAll(t *testing.T) {
 	b1 := &model.Book{Title: "A", Author: "B"}
 	b2 := &model.Book{Title: "C", Author: "D"}
 
@@ -54,8 +51,7 @@ func TestFindAll(t *testing.T){
 	DeleteBook(b2)
 }
 
-
-func TestUpdate(t *testing.T){
+func TestUpdate(t *testing.T) {
 	b := &model.Book{Title: "1", Author: "2"}
 	b = AddBook(b)
 

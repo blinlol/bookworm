@@ -3,8 +3,8 @@ package web
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -13,11 +13,9 @@ import (
 	"github.com/blinlol/bookworm/model/dao"
 )
 
-
 var logger *zap.Logger
 
-
-func GetBooks(c *gin.Context){
+func GetBooks(c *gin.Context) {
 	books := dao.AllBooks()
 	if books == nil {
 		books = make([]*model.Book, 0)
@@ -29,8 +27,7 @@ func GetBooks(c *gin.Context){
 	)
 }
 
-
-func AddBook(c *gin.Context){
+func AddBook(c *gin.Context) {
 	var req model.AddBookRequest
 	err := json.NewDecoder(c.Request.Body).Decode(&req)
 	if err != nil {
@@ -49,7 +46,6 @@ func AddBook(c *gin.Context){
 		)
 	}
 }
-
 
 func GetBook(c *gin.Context) {
 	id := c.Param("id")
@@ -72,13 +68,11 @@ func GetBook(c *gin.Context) {
 	}
 }
 
-
 func DeleteBook(c *gin.Context) {
 	id := c.Param("id")
 	dao.DeleteBookById(id)
 	c.JSON(http.StatusOK, gin.H{})
 }
-
 
 func UpdateBook(c *gin.Context) {
 	id := c.Param("id")
@@ -112,8 +106,7 @@ func UpdateBook(c *gin.Context) {
 	}
 }
 
-
-func Pong(c *gin.Context){
+func Pong(c *gin.Context) {
 	pong := model.PingResponse{Message: "pong"}
 	c.JSON(
 		http.StatusOK,
@@ -121,8 +114,7 @@ func Pong(c *gin.Context){
 	)
 }
 
-
-func initLogger(){
+func initLogger() {
 	var err error
 	logger, err = zap.NewDevelopment()
 	if err != nil {
@@ -130,7 +122,6 @@ func initLogger(){
 	}
 }
 
-
-func init(){
+func init() {
 	initLogger()
 }

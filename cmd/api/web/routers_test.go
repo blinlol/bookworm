@@ -13,8 +13,7 @@ import (
 	"github.com/blinlol/bookworm/model/dao"
 )
 
-
-func TestPong(t *testing.T){
+func TestPong(t *testing.T) {
 	r := CreateRouter()
 	w := httptest.NewRecorder()
 
@@ -24,8 +23,7 @@ func TestPong(t *testing.T){
 	assert.Equal(t, "{\"message\":\"pong\"}", w.Body.String())
 }
 
-
-func TestBooks(t *testing.T){
+func TestBooks(t *testing.T) {
 	// init router
 	r := CreateRouter()
 	r = BookRoutes(r)
@@ -57,7 +55,7 @@ func TestBooks(t *testing.T){
 	id := resp_b.Book.Id
 	req, _ = http.NewRequest(
 		"GET",
-		"/api/book/" + id,
+		"/api/book/"+id,
 		nil,
 	)
 	r.ServeHTTP(w, req)
@@ -74,7 +72,7 @@ func TestBooks(t *testing.T){
 	id = "not_found"
 	req, _ = http.NewRequest(
 		"GET",
-		"/api/book/" + id,
+		"/api/book/"+id,
 		nil,
 	)
 	r.ServeHTTP(w, req)
@@ -93,8 +91,8 @@ func TestBooks(t *testing.T){
 	raw, _ = json.Marshal(req_b)
 	req, _ = http.NewRequest(
 		"PUT",
-		"/api/book/" + id,
-		bytes.NewReader(raw),		
+		"/api/book/"+id,
+		bytes.NewReader(raw),
 	)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -104,7 +102,7 @@ func TestBooks(t *testing.T){
 	w = httptest.NewRecorder()
 	req, _ = http.NewRequest(
 		"DELETE",
-		"/api/book/" + resp_b.Book.Id,
+		"/api/book/"+resp_b.Book.Id,
 		nil,
 	)
 	r.ServeHTTP(w, req)

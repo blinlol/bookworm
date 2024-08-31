@@ -12,20 +12,17 @@ import (
 	"go.uber.org/zap"
 )
 
-
 var DBClient *mongo.Client
 var DBContext context.Context
 var DBLogger *zap.Logger
 
 var DBName string = "bookworm_db"
 
-
-func initContext(){
+func initContext() {
 	DBContext = context.Background()
 }
 
-
-func initLogger(){
+func initLogger() {
 	var err error
 	DBLogger, err = zap.NewDevelopment()
 	if err != nil {
@@ -33,8 +30,7 @@ func initLogger(){
 	}
 }
 
-
-func initClient(){
+func initClient() {
 	var err error
 	uri := os.Getenv("MONGO_URI")
 	if uri == "" {
@@ -50,7 +46,7 @@ func initClient(){
 	}
 }
 
-func init(){
+func init() {
 	initContext()
 	initLogger()
 	initClient()

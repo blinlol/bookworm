@@ -6,17 +6,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/blinlol/bookworm/model"
+	"github.com/blinlol/bookworm/utils"
 )
 
-
-
-
 var collectionName string = "Books"
-
-
-func getCollection() * mongo.Collection{
-	return DBClient.Database(DBName).Collection(collectionName)
-}
 
 // return nil if error
 func AllBooks() []*model.Book {
@@ -39,7 +32,7 @@ func AllBooks() []*model.Book {
 func FindBookById(id string) *model.Book {
 	res := getCollection().FindOne(
 		DBContext,
-		bson.D{{"_id", id}},
+		bson.D{utils.E("_id", id)},
 	)
 	var b model.Book
 	err := res.Decode(&b)
@@ -57,7 +50,7 @@ func FindBook(title string, author string) *model.Book {
 	coll := getCollection()
 	res := coll.FindOne(
 		DBContext,
-		bson.D{{"title", title}, {"author", author}},
+		bson.D{utils.E("title", title), utils.E("author", author)},
 	)
 
 	var book model.Book
@@ -80,8 +73,8 @@ func AddBook(b *model.Book) *model.Book {
 	res, err := coll.InsertOne(
 		DBContext,
 		model.Book{
-			Id: "book-" + primitive.NewObjectID().Hex(),
-			Title: b.Title,
+			Id:     "book-" + primitive.NewObjectID().Hex(),
+			Title:  b.Title,
 			Author: b.Author,
 			Quotes: make([]*model.Quote, 0),
 		},
@@ -93,16 +86,14 @@ func AddBook(b *model.Book) *model.Book {
 	return FindBookById(res.InsertedID.(string))
 }
 
-
 func DeleteBook(b *model.Book) {
 	DeleteBookById(b.Id)
 }
 
-
 func DeleteBookById(id string) {
 	res := getCollection().FindOneAndDelete(
 		DBContext,
-		bson.D{{"_id", id}},
+		bson.D{utils.E("_id", id)},
 	)
 	if res.Err() == mongo.ErrNoDocuments {
 		DBLogger.Sugar().Warnln("document id=", id, " not found, so not deleted")
@@ -111,17 +102,15 @@ func DeleteBookById(id string) {
 	}
 }
 
-
 func UpdateBook(b *model.Book) *model.Book {
 	_, err := getCollection().UpdateByID(
 		DBContext,
 		b.Id,
-		bson.D{{"$set", bson.D{
-				{"title", b.Title},
-				{"author", b.Author},
-				{"quotes", b.Quotes},
-			},
-		}},
+		bson.D{utils.E("$set", bson.D{
+			utils.E("title", b.Title),
+			utils.E("author", b.Author),
+			utils.E("quotes", b.Quotes)},
+		)},
 	)
 	if err != nil {
 		DBLogger.Sugar().Error(err)
@@ -136,9 +125,13 @@ func AddQuote(book *model.Book, quote *model.Quote) {
 	_, err := getCollection().UpdateByID(
 		DBContext,
 		book.Id,
-		bson.D{{"$set", bson.D{{"quotes", book.Quotes}}}},
+		bson.D{utils.E("$set", bson.D{utils.E("quotes", book.Quotes)})},
 	)
 	if err != nil {
 		DBLogger.Sugar().Error(err)
 	}
+}
+
+func getCollection() *mongo.Collection {
+	return DBClient.Database(DBName).Collection(collectionName)
 }
