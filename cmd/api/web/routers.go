@@ -1,12 +1,14 @@
 package web
 
 import (
-	_"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
-
+func CreateRouter() *gin.Engine {
+	router := gin.Default()
+	router.GET("/ping", Pong)
+	return router
+}
 
 func BookRoutes(r *gin.Engine) *gin.Engine {
 	r.GET("/api/books", GetBooks)

@@ -1,29 +1,25 @@
 package main
 
 import (
-	"os"
 	"log"
-
-	"github.com/gin-gonic/gin"
+	"os"
 
 	"github.com/blinlol/bookworm/cmd/api/web"
-    // "bookworm/api/web"
 )
 
-func main(){
+func main() {
 	address := os.Getenv("API_PORT")
 	if address == "" {
 		address = "8081"
 		log.Println("API_PORT doesn't set. Use port =", address)
 	}
 	address = ":" + address
-	router := gin.Default()
+	router := web.CreateRouter()
 
 	// add middlewares
 	router.Use(web.CORSMiddleware())
 
 	// add routes
-	router.GET("/ping", web.Pong)
 	router = web.BookRoutes(router)
 
 	// run server

@@ -7,20 +7,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-
-	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/blinlol/bookworm/model"
 	"github.com/blinlol/bookworm/model/dao"
-    // "bookworm/model"
-    // "bookworm/model/dao"
-
 )
 
 
 func TestPong(t *testing.T){
-	r := gin.Default()
+	r := CreateRouter()
 	w := httptest.NewRecorder()
 
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -31,11 +26,11 @@ func TestPong(t *testing.T){
 
 
 func TestBooks(t *testing.T){
-	r := gin.Default()
+	r := CreateRouter()
 	r = BookRoutes(r)
 	w := httptest.NewRecorder()
 
-	b := model.Book{Title: "title", Author: "author"}
+	b := model.AddBookRequest{Book: model.Book{Title: "title", Author: "author"}}
 	raw, _ := json.Marshal(b)
 	req, _ := http.NewRequest(
 		"POST",
@@ -45,17 +40,17 @@ func TestBooks(t *testing.T){
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, 200, w.Code)
-	var resp_b model.Book
+	var resp_b model.AddBookResponse
 	err := json.Unmarshal(w.Body.Bytes(), &resp_b)
 	if err != nil {
 		t.Error(err)
 	}
-	assert.Equal(t, b.Author, resp_b.Author)
-	assert.Equal(t, b.Title, resp_b.Title)
+	assert.Equal(t, b.Book.Author, resp_b.Book.Author)
+	assert.Equal(t, b.Book.Title, resp_b.Book.Title)
 
 	req, _ = http.NewRequest(
 		"DELETE",
-		"/api/book/" + resp_b.Id,
+		"/api/book/" + resp_b.Book.Id,
 		nil,
 	)
 	r.ServeHTTP(w, req)
