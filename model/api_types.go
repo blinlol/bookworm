@@ -11,6 +11,11 @@ type GetBooksResponse struct {
 }
 
 
+type GetBookResponse struct {
+	Book *Book `json:"book"`
+}
+
+
 type AddBookRequest struct {
 	Book Book	`json:"book"`
 }

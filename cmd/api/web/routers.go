@@ -13,6 +13,8 @@ func CreateRouter() *gin.Engine {
 func BookRoutes(r *gin.Engine) *gin.Engine {
 	r.GET("/api/books", GetBooks)
 	r.POST("/api/books/add", AddBook)
+
+	r.GET("/api/book/:id", GetBook)
 	r.DELETE("/api/book/:id", DeleteBook)
 	return r
 }

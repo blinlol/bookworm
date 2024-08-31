@@ -10,8 +10,6 @@ import (
 
 	"github.com/blinlol/bookworm/model"
 	"github.com/blinlol/bookworm/model/dao"
-	// "bookworm/model"
-    // "bookworm/model/dao"
 )
 
 
@@ -47,6 +45,28 @@ func AddBook(c *gin.Context){
 		c.JSON(
 			http.StatusOK,
 			model.AddBookResponse{Book: *b},
+		)
+	}
+}
+
+
+func GetBook(c *gin.Context) {
+	id := c.Param("id")
+	book := dao.FindBookById(id)
+	if book == nil {
+		c.JSON(
+			http.StatusBadRequest,
+			model.ErrorResponse{
+				Message: "Book with such id not found",
+			},
+		)
+	} else {
+		resp := model.GetBookResponse{
+			Book: book,
+		}
+		c.JSON(
+			http.StatusOK,
+			resp,
 		)
 	}
 }
