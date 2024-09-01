@@ -21,6 +21,7 @@ func main() {
 
 	// add routes
 	router = web.BookRoutes(router)
+	router = web.QuoteRoutes(router)
 
 	// run server
 	err := router.Run(address)

@@ -1,3 +1,3 @@
 package main
 
-//go:generate vugugen -s -skip-go-mod
+//go:generate vugugen -s -r -skip-go-mod 

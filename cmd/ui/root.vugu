@@ -1,14 +1,29 @@
 <div>
     <div vg-if="c.IsLoading">Loading...</div>
-    <div vg-for='c.Books'>
-        <p vg-content='fmt.Sprint(*value)'></p>
+
+    <button @click="c.HandleClick(event)">fetch books</button>
+
+    <div vg-for='_, book := range c.Books'>
+        <p vg-content='fmt.Sprint(book.Id, "---", book.Author, "---", book.Title)'></p>
+        <div vg-for='i, quote := range book.Quotes'>
+            <p vg-content='fmt.Sprint(i, ": ", quote.Text)'></p>
+        </div>
     </div>
-    <button @click="c.HandleClick(event)">pupupu</button>
+
     <div>
         <form>
-            <vgform:Input type="text" :Value='vgform.StringPtr{&c.Form.Title}' placeholder="title"></vgform:Input>
-            <vgform:Input type="text" :Value='vgform.StringPtr{&c.Form.Author}' placeholder="author"></vgform:Input>
-            <button type="submit" @click="c.SubmitForm(event)">submit</button>
+            <vgform:Input type="text" :Value='vgform.StringPtr{&c.BookForm.Title}' placeholder="title"></vgform:Input>
+            <vgform:Input type="text" :Value='vgform.StringPtr{&c.BookForm.Author}' placeholder="author"></vgform:Input>
+            <button type="submit" @click="c.SubmitBookForm(event)">add book</button>
+        </form>
+    </div>
+
+    <div>
+        <form>
+            <vgform:Input type="text" :Value='vgform.StringPtr{&c.ParseForm.BookId}' placeholder="book id"></vgform:Input>
+            <vgform:Input type="text" :Value='vgform.StringPtr{&c.ParseForm.Separator}' placeholder="separator"></vgform:Input>
+            <vgform:Textarea :Value='vgform.StringPtr{&c.ParseForm.Text}' placeholder="paste here all quotes"></vgform:Textarea>
+            <button type="submit" @click="c.SubmitParseForm(event)">parse quotes and add to book </button>
         </form>
     </div>
 </div>
@@ -26,14 +41,21 @@ import (
 )
 
 type Root struct {
-    Form Form
+    BookForm BookForm
+    ParseForm ParseQuotesForm
     Books []*model.Book     `vugu:data`
     IsLoading bool          `vugu:data`
 }
 
-type Form struct {
+type BookForm struct {
     Title string
     Author string
+}
+
+type ParseQuotesForm struct {
+    Text string
+    BookId string
+    Separator string
 }
 
 var apiurl string = "http://127.0.0.1:8081/api"
@@ -78,12 +100,12 @@ func (c *Root) HandleClick(event vugu.DOMEvent) {
     }()
 }
 
-func (c *Root) SubmitForm(event vugu.DOMEvent) {
+func (c *Root) SubmitBookForm(event vugu.DOMEvent) {
     ee := event.EventEnv()
     go func(){
         ee.RLock()
-        title := c.Form.Title
-        author := c.Form.Author
+        title := c.BookForm.Title
+        author := c.BookForm.Author
         ee.RUnlock()
 
         book := model.AddBookRequest{Book: model.Book{Title: title, Author: author}}
@@ -107,6 +129,31 @@ func (c *Root) SubmitForm(event vugu.DOMEvent) {
         ee.Lock()
         c.Books = books
         ee.UnlockRender()
+    }()
+}
+
+func (c *Root) SubmitParseForm(event vugu.DOMEvent) {
+    ee := event.EventEnv()
+    go func (){
+        ee.RLock()
+        req := model.ParseQuotesRequest{
+            BookId: c.ParseForm.BookId,
+            Text: c.ParseForm.Text,
+            Separator: c.ParseForm.Separator,
+        }
+        ee.RUnlock()
+
+        marshaled, _ := json.Marshal(req)
+        // TODO
+        _, err := http.Post(
+            apiurl + "/quotes/parse",
+            "application/json",
+            bytes.NewReader(marshaled),
+        )
+        if err != nil {
+            log.Printf("Error parse quotes: %v", err)
+            return
+        }
     }()
 }
 
