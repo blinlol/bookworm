@@ -11,6 +11,7 @@ import (
 
 	"github.com/blinlol/bookworm/model"
 	"github.com/blinlol/bookworm/model/dao"
+	"github.com/blinlol/bookworm/utils"
 )
 
 var logger *zap.Logger
@@ -103,6 +104,24 @@ func UpdateBook(c *gin.Context) {
 		} else {
 			c.Status(http.StatusOK)
 		}
+	}
+}
+
+func ParseQuotes(c *gin.Context) {
+	var req model.ParseQuotesRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	if err != nil {
+		logger.Sugar().Infoln(err)
+		c.JSON(
+			http.StatusBadRequest,
+			model.ErrorResponse{Message: fmt.Sprintf("%v", err)},
+		)
+	} else {
+		quotes := utils.ParseQuotes(req.Text, req.Separator)
+		book := dao.FindBookById(req.BookId)
+		book.Quotes = append(book.Quotes, quotes...)
+		dao.UpdateBook(book)
+		c.Status(http.StatusOK)
 	}
 }
 

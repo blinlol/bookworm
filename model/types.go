@@ -9,5 +9,5 @@ type Book struct {
 }
 
 type Quote struct {
-	Text string
+	Text	string
 }

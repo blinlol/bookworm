@@ -19,3 +19,8 @@ func BookRoutes(r *gin.Engine) *gin.Engine {
 	r.DELETE("/api/book/:id", DeleteBook)
 	return r
 }
+
+func QuoteRoutes(r *gin.Engine) *gin.Engine {
+	r.POST("/api/quotes/parse", ParseQuotes)
+	return r
+}

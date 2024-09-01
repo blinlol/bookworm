@@ -109,3 +109,34 @@ func TestBooks(t *testing.T) {
 
 	assert.Nil(t, dao.FindBook("title", "author"))
 }
+
+func TestParseQuotes(t *testing.T){
+	r := CreateRouter()
+	r = QuoteRoutes(r)
+
+	// create book
+	book := &model.Book{Title: "parse title", Author: "parse author"}
+	book = dao.AddBook(book)
+	defer dao.DeleteBook(book)
+
+	// parse quotes
+	quotes_text := "A\n*\nB\n*\nC"
+	quotes_slice := []*model.Quote{{Text: "A"}, {Text: "B"}, {Text: "C"}}
+	sep := "*"
+	w := httptest.NewRecorder()
+	req_m := model.ParseQuotesRequest{
+		BookId: book.Id,
+		Text: quotes_text,
+		Separator: sep,
+	}
+	raw, _ := json.Marshal(req_m)
+	req, _ := http.NewRequest(
+		"POST",
+		"/api/quotes/parse",
+		bytes.NewReader(raw),
+	)
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, quotes_slice, dao.FindBookById(book.Id).Quotes)
+}
