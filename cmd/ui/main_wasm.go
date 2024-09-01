@@ -31,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	rootBuilder := &Root{}
+	rootBuilder := VuguSetup(buildEnv, renderer.EventEnv())
 
 	for ok := true; ok; ok = renderer.EventWait() {
 

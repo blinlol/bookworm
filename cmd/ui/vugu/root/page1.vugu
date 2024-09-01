@@ -1,0 +1,9 @@
+<div>
+page1
+</div>
+
+<<script type="application/x-go">
+type Page1 struct{
+    
+}
+</script>

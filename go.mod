@@ -3,10 +3,11 @@ module github.com/blinlol/bookworm
 go 1.23.0
 
 require (
-	github.com/dustin/go-humanize v0.0.0-20180713052910-9f541cc9db5d
+	github.com/dustin/go-humanize v1.0.0
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/stretchr/testify v1.9.0
+	github.com/vugu/vgrouter v0.0.0-20200725205318-eeb478c42e5d
 	github.com/vugu/vjson v0.0.0-20200505061711-f9cbed27d3d9
 	github.com/vugu/vugu v0.4.0
 	go.mongodb.org/mongo-driver v1.16.1

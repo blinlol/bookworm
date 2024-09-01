@@ -1,3 +1,4 @@
+
 <div>
     <div vg-if="c.IsLoading">Loading...</div>
 
@@ -40,7 +41,7 @@ import (
     "github.com/blinlol/bookworm/model"
 )
 
-type Root struct {
+type MainPage struct {
     BookForm BookForm
     ParseForm ParseQuotesForm
     Books []*model.Book     `vugu:data`
@@ -78,7 +79,7 @@ func fetchBooks() []*model.Book {
     return resp.Books
 }
 
-func (c *Root) HandleClick(event vugu.DOMEvent) {    
+func (c *MainPage) HandleClick(event vugu.DOMEvent) {    
 
     ee := event.EventEnv()
 
@@ -100,7 +101,7 @@ func (c *Root) HandleClick(event vugu.DOMEvent) {
     }()
 }
 
-func (c *Root) SubmitBookForm(event vugu.DOMEvent) {
+func (c *MainPage) SubmitBookForm(event vugu.DOMEvent) {
     ee := event.EventEnv()
     go func(){
         ee.RLock()
@@ -132,7 +133,7 @@ func (c *Root) SubmitBookForm(event vugu.DOMEvent) {
     }()
 }
 
-func (c *Root) SubmitParseForm(event vugu.DOMEvent) {
+func (c *MainPage) SubmitParseForm(event vugu.DOMEvent) {
     ee := event.EventEnv()
     go func (){
         ee.RLock()

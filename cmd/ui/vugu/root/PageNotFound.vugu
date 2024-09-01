@@ -1,0 +1,7 @@
+<div>
+not found
+</div>
+
+<<script type="application/x-go">
+type PageNotFound struct{}
+</script>

@@ -27,5 +27,5 @@ go.work.sum
 todo
 
 cmd/ui/bin
-cmd/ui/*_gen.go
+**/*_gen.go
 cmd/ui/dist
