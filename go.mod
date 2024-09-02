@@ -6,6 +6,7 @@ require (
 	github.com/dustin/go-humanize v1.0.0
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-gonic/gin v1.10.0
+	github.com/jackc/pgx/v5 v5.6.0
 	github.com/stretchr/testify v1.9.0
 	github.com/vugu/vgrouter v0.0.0-20200725205318-eeb478c42e5d
 	github.com/vugu/vjson v0.0.0-20200505061711-f9cbed27d3d9
@@ -27,6 +28,8 @@ require (
 	github.com/go-playground/validator/v10 v10.20.0 // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.7 // indirect

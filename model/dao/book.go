@@ -1,137 +1,156 @@
 package dao
 
 import (
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"context"
+
+	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 
 	"github.com/blinlol/bookworm/model"
-	"github.com/blinlol/bookworm/utils"
 )
 
-var collectionName string = "Books"
 
-// return nil if error
-func AllBooks() []*model.Book {
-	coll := getCollection()
-	cursor, err := coll.Find(DBContext, bson.D{})
+var logger *zap.Logger
+var connString string
+
+// return nil in was error
+func AllBooks(ctx context.Context) []*model.Book {
+	conn, err := pgx.Connect(ctx, connString)
 	if err != nil {
-		DBLogger.Sugar().Errorln("error while find all books:", err)
+		logger.Sugar().Error(err)
 		return nil
 	}
-	var books []*model.Book
-	err = cursor.All(DBContext, &books)
+
+	var id, title, author string
+	books := make([]*model.Book, 0)
+	rows, _ := conn.Query(ctx, "select id, title, author from books")
+	defer rows.Close()
+	_, err = pgx.ForEachRow(
+		rows,
+		[]any{&id, &title, &author},
+		func() error {
+			b := model.Book{Id: id, Title: title, Author: author}
+			books = append(books, &b)
+			return nil
+		},
+	)
+
 	if err != nil {
-		DBLogger.Sugar().Errorln(err)
+		logger.Sugar().Error(err)
+		return nil
+	}
+
+	rows.Close()
+	if err = rows.Err(); err != nil {
+		logger.Sugar().Error(err)
 		return nil
 	}
 	return books
 }
 
-// return nil if document not found or error
-func FindBookById(id string) *model.Book {
-	res := getCollection().FindOne(
-		DBContext,
-		bson.D{utils.E("_id", id)},
-	)
-	var b model.Book
-	err := res.Decode(&b)
-	if err == mongo.ErrNoDocuments {
-		return nil
-	} else if err != nil {
-		DBLogger.Sugar().Errorln(err)
+
+func FindBookById(ctx context.Context, id string) *model.Book {
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		logger.Sugar().Error(err)
 		return nil
 	}
-	return &b
-}
 
-// return nil if document not found or error
-func FindBook(title string, author string) *model.Book {
-	coll := getCollection()
-	res := coll.FindOne(
-		DBContext,
-		bson.D{utils.E("title", title), utils.E("author", author)},
-	)
+	book := model.Book{Id: id}
+	err = conn.QueryRow(
+		ctx,
+		"select author, title from books where id = $1",
+		id,
+	).Scan(&book.Author, &book.Title)
 
-	var book model.Book
-	err := res.Decode(&book)
-	if err == mongo.ErrNoDocuments {
-		return nil
-	} else if err != nil {
-		DBLogger.Sugar().Errorln(err)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil
+		}
+		logger.Sugar().Error(err)
 		return nil
 	}
+
 	return &book
 }
 
-// return added book or nil if error
-func AddBook(b *model.Book) *model.Book {
-	if b := FindBook(b.Title, b.Author); b != nil {
-		return b
-	}
-	coll := getCollection()
-	res, err := coll.InsertOne(
-		DBContext,
-		model.Book{
-			Id:     "book-" + primitive.NewObjectID().Hex(),
-			Title:  b.Title,
-			Author: b.Author,
-			Quotes: make([]*model.Quote, 0),
-		},
-	)
+
+func FindBook(ctx context.Context, bookLike model.Book) *model.Book {
+	conn, err := pgx.Connect(ctx, connString)
 	if err != nil {
-		DBLogger.Sugar().Errorln(err)
+		logger.Sugar().Error(err)
 		return nil
 	}
-	return FindBookById(res.InsertedID.(string))
-}
 
-func DeleteBook(b *model.Book) {
-	DeleteBookById(b.Id)
-}
+	err = conn.QueryRow(
+		ctx,
+		"select id from books where author = $1 and title = $2",
+		bookLike.Author, bookLike.Title,
+	).Scan(&bookLike.Id)
 
-func DeleteBookById(id string) {
-	res := getCollection().FindOneAndDelete(
-		DBContext,
-		bson.D{utils.E("_id", id)},
-	)
-	if res.Err() == mongo.ErrNoDocuments {
-		DBLogger.Sugar().Warnln("document id=", id, " not found, so not deleted")
-	} else if res.Err() != nil {
-		DBLogger.Sugar().Errorln(res.Err())
-	}
-}
-
-func UpdateBook(b *model.Book) *model.Book {
-	_, err := getCollection().UpdateByID(
-		DBContext,
-		b.Id,
-		bson.D{utils.E("$set", bson.D{
-			utils.E("title", b.Title),
-			utils.E("author", b.Author),
-			utils.E("quotes", b.Quotes)},
-		)},
-	)
 	if err != nil {
-		DBLogger.Sugar().Error(err)
+		if err == pgx.ErrNoRows {
+			return nil
+		}
+		logger.Sugar().Error(err)
 		return nil
 	}
-	return FindBookById(b.Id)
+
+	return &bookLike
 }
 
-// should use UpdateBook
-func AddQuote(book *model.Book, quote *model.Quote) {
-	book.Quotes = append(book.Quotes, quote)
-	_, err := getCollection().UpdateByID(
-		DBContext,
-		book.Id,
-		bson.D{utils.E("$set", bson.D{utils.E("quotes", book.Quotes)})},
+// return nil if was error
+func AddBook(ctx context.Context, book model.Book) *model.Book {
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		logger.Sugar().Error(err)
+		return nil
+	}
+
+	commandTag, err := conn.Exec(
+		ctx,
+		"insert into books(author, title) values ($1, $2)",
+		book.Author, book.Title,
 	)
 	if err != nil {
-		DBLogger.Sugar().Error(err)
+		logger.Sugar().Error(err)
+		return nil
+	}
+	if commandTag.RowsAffected() != 1 {
+		logger.Sugar().Warn("insert affected more than 1 row, there is smth wrong")
+	}
+
+	return FindBook(ctx, book)
+}
+
+func DeleteBookById(ctx context.Context, id string) {
+	conn, err := pgx.Connect(ctx, connString)
+	if err != nil {
+		logger.Sugar().Error(err)
+		return
+	}
+
+	commandTag, err := conn.Exec(
+		ctx,
+		"delete from books where id = $1",
+		id,
+	)
+	if err != nil {
+		logger.Sugar().Error(err)
+	} else if commandTag.RowsAffected() == 0 {
+		logger.Sugar().Infof("book with id = %s not found and cant delete", id)
 	}
 }
 
-func getCollection() *mongo.Collection {
-	return DBClient.Database(DBName).Collection(collectionName)
+// func UpdateBook(book *model.Book) *model.Book {}
+
+
+func init(){
+	var err error
+	logger, err = zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	connString = "postgresql://bookworm_user:123@localhost:5432/bookworm_db"
 }
