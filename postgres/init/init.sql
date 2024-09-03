@@ -2,7 +2,7 @@ create table books (
     id uuid default gen_random_uuid() primary key,
     author varchar(64) not null,
     title varchar(64) not null,
-    constraint unique unique_author_title_pair (author, title)
+    constraint unique_author_title_pair unique (author, title)
 );
 
 create table quotes (

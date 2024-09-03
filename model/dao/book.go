@@ -4,20 +4,16 @@ import (
 	"context"
 
 	"github.com/jackc/pgx/v5"
-	"go.uber.org/zap"
 
 	"github.com/blinlol/bookworm/model"
 )
 
 
-var logger *zap.Logger
-var connString string
-
 // return nil in was error
 func AllBooks(ctx context.Context) []*model.Book {
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
@@ -36,23 +32,22 @@ func AllBooks(ctx context.Context) []*model.Book {
 	)
 
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
 	rows.Close()
 	if err = rows.Err(); err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 	return books
 }
 
-
 func FindBookById(ctx context.Context, id string) *model.Book {
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
@@ -67,18 +62,17 @@ func FindBookById(ctx context.Context, id string) *model.Book {
 		if err == pgx.ErrNoRows {
 			return nil
 		}
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
 	return &book
 }
 
-
 func FindBook(ctx context.Context, bookLike model.Book) *model.Book {
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
@@ -92,7 +86,7 @@ func FindBook(ctx context.Context, bookLike model.Book) *model.Book {
 		if err == pgx.ErrNoRows {
 			return nil
 		}
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
@@ -101,9 +95,9 @@ func FindBook(ctx context.Context, bookLike model.Book) *model.Book {
 
 // return nil if was error
 func AddBook(ctx context.Context, book model.Book) *model.Book {
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 
@@ -113,20 +107,20 @@ func AddBook(ctx context.Context, book model.Book) *model.Book {
 		book.Author, book.Title,
 	)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return nil
 	}
 	if commandTag.RowsAffected() != 1 {
-		logger.Sugar().Warn("insert affected more than 1 row, there is smth wrong")
+		Logger.Sugar().Warn("insert affected more than 1 row, there is smth wrong")
 	}
 
 	return FindBook(ctx, book)
 }
 
 func DeleteBookById(ctx context.Context, id string) {
-	conn, err := pgx.Connect(ctx, connString)
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 		return
 	}
 
@@ -136,21 +130,27 @@ func DeleteBookById(ctx context.Context, id string) {
 		id,
 	)
 	if err != nil {
-		logger.Sugar().Error(err)
+		Logger.Sugar().Error(err)
 	} else if commandTag.RowsAffected() == 0 {
-		logger.Sugar().Infof("book with id = %s not found and cant delete", id)
+		Logger.Sugar().Infof("book with id = %s not found and cant delete", id)
 	}
 }
 
-// func UpdateBook(book *model.Book) *model.Book {}
-
-
-func init(){
-	var err error
-	logger, err = zap.NewDevelopment()
+func UpdateBook(ctx context.Context, book model.Book) {
+	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
-		panic(err)
+		Logger.Sugar().Error(err)
+		return
 	}
 
-	connString = "postgresql://bookworm_user:123@localhost:5432/bookworm_db"
+	commandTag, err := conn.Exec(
+		ctx,
+		"update books set (author, title) = ($1, $2) where id = $3",
+		book.Author, book.Title, book.Id,
+	)
+	if err != nil {
+		Logger.Sugar().Error(err)
+	} else if commandTag.RowsAffected() != 1 {
+		Logger.Sugar().Warnf("affected %d rows in update", commandTag.RowsAffected())
+	}
 }
