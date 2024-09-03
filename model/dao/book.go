@@ -19,7 +19,10 @@ func AllBooks(ctx context.Context) []*model.Book {
 
 	var id, title, author string
 	books := make([]*model.Book, 0)
-	rows, _ := conn.Query(ctx, "select id, title, author from books")
+	rows, _ := conn.Query(
+		ctx,
+		`select id, title, author from books`,
+	)
 	defer rows.Close()
 	_, err = pgx.ForEachRow(
 		rows,
@@ -136,7 +139,7 @@ func DeleteBookById(ctx context.Context, id string) {
 	}
 }
 
-func UpdateBook(ctx context.Context, book model.Book) {
+func UpdateBook(ctx context.Context, book model.Book) (success bool){
 	conn, err := pgx.Connect(ctx, ConnString)
 	if err != nil {
 		Logger.Sugar().Error(err)
@@ -150,7 +153,11 @@ func UpdateBook(ctx context.Context, book model.Book) {
 	)
 	if err != nil {
 		Logger.Sugar().Error(err)
+		return
 	} else if commandTag.RowsAffected() != 1 {
 		Logger.Sugar().Warnf("affected %d rows in update", commandTag.RowsAffected())
+		return
 	}
+	success = true
+	return
 }

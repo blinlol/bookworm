@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"os"
+
 	"go.uber.org/zap"
 )
 
@@ -16,5 +18,5 @@ func init(){
 		panic(err)
 	}
 
-	ConnString = "postgresql://bookworm_user:123@localhost:5432/bookworm_db"
+	ConnString = os.Getenv("POSTGRES_URI")
 }

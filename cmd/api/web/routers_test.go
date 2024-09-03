@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -96,7 +97,7 @@ func TestBooks(t *testing.T) {
 	)
 	r.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, book, *dao.FindBookById(book.Id))
+	assert.Equal(t, book, *dao.FindBookById(context.Background(), book.Id))
 
 	// delete book
 	w = httptest.NewRecorder()
@@ -107,17 +108,18 @@ func TestBooks(t *testing.T) {
 	)
 	r.ServeHTTP(w, req)
 
-	assert.Nil(t, dao.FindBook("title", "author"))
+	assert.Nil(t, dao.FindBook(context.Background(), book))
 }
 
 func TestParseQuotes(t *testing.T){
 	r := CreateRouter()
 	r = QuoteRoutes(r)
+	ctx := context.Background()
 
 	// create book
 	book := &model.Book{Title: "parse title", Author: "parse author"}
-	book = dao.AddBook(book)
-	defer dao.DeleteBook(book)
+	book = dao.AddBook(ctx, *book)
+	defer dao.DeleteBookById(ctx, book.Id)
 
 	// parse quotes
 	quotes_text := "A\n*\nB\n*\nC"
@@ -138,5 +140,5 @@ func TestParseQuotes(t *testing.T){
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, quotes_slice, dao.FindBookById(book.Id).Quotes)
+	assert.Equal(t, quotes_slice, dao.GetQuotesByBookId(ctx, book.Id))
 }

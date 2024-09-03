@@ -1,18 +1,18 @@
 services:
-  mongo:
-    image: mongodb/mongodb-community-server:latest
-    expose:
-      - 27017
+  # mongo:
+  #   image: mongodb/mongodb-community-server:latest
+  #   expose:
+  #     - 27017
   api:
     build:
       context: .
       dockerfile: api.dockerfile
     ports:
       - 8081:8081
-    environment:
-      - MONGO_URI=mongodb://mongo:27017
     env_file:
       - docker.env
+    networks:
+      - postgres
   ui:
     build:
       context: .
@@ -21,3 +21,27 @@ services:
       - 8877:8877
     env_file:
       - docker.env
+
+  postgres:
+    image: postgres:16-alpine
+    env_file:
+      - docker.env
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bookworm_user -d bookworm_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - postgres
+
+volumes:
+  pg_data:
+
+networks:
+  postgres:
+    driver: bridge

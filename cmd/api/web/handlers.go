@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -17,7 +18,8 @@ import (
 var logger *zap.Logger
 
 func GetBooks(c *gin.Context) {
-	books := dao.AllBooks()
+	ctx := handlerContext()
+	books := dao.AllBooks(ctx)
 	if books == nil {
 		books = make([]*model.Book, 0)
 	}
@@ -39,10 +41,11 @@ func AddBook(c *gin.Context) {
 		)
 	}
 
-	b := dao.AddBook(&req.Book)
+	ctx := handlerContext()
+	b := dao.AddBook(ctx, req.Book)
 	if b != nil {
 		c.JSON(
-			http.StatusOK,
+			http.StatusCreated,
 			model.AddBookResponse{Book: *b},
 		)
 	}
@@ -50,10 +53,11 @@ func AddBook(c *gin.Context) {
 
 func GetBook(c *gin.Context) {
 	id := c.Param("id")
-	book := dao.FindBookById(id)
+	ctx := handlerContext()
+	book := dao.FindBookById(ctx, id)
 	if book == nil {
 		c.JSON(
-			http.StatusBadRequest,
+			http.StatusNoContent,
 			model.ErrorResponse{
 				Message: "Book with such id not found",
 			},
@@ -71,7 +75,8 @@ func GetBook(c *gin.Context) {
 
 func DeleteBook(c *gin.Context) {
 	id := c.Param("id")
-	dao.DeleteBookById(id)
+	ctx := handlerContext()
+	dao.DeleteBookById(ctx, id)
 	c.JSON(http.StatusOK, gin.H{})
 }
 
@@ -93,16 +98,17 @@ func UpdateBook(c *gin.Context) {
 			model.ErrorResponse{Message: message},
 		)
 	} else {
-		upd_b := dao.UpdateBook(&req.Book)
-		if upd_b == nil {
+		ctx := handlerContext()
+		success := dao.UpdateBook(ctx, req.Book)
+		if success {
+			c.Status(http.StatusOK)
+		} else {
 			message := "error while book updating"
 			logger.Sugar().Infoln(message)
 			c.JSON(
 				http.StatusBadRequest,
 				model.ErrorResponse{Message: message},
 			)
-		} else {
-			c.Status(http.StatusOK)
 		}
 	}
 }
@@ -117,11 +123,37 @@ func ParseQuotes(c *gin.Context) {
 			model.ErrorResponse{Message: fmt.Sprintf("%v", err)},
 		)
 	} else {
+		ctx := handlerContext()
 		quotes := utils.ParseQuotes(req.Text, req.Separator)
-		book := dao.FindBookById(req.BookId)
-		book.Quotes = append(book.Quotes, quotes...)
-		dao.UpdateBook(book)
-		c.Status(http.StatusOK)
+		success := dao.AddQuotes(ctx, req.BookId, quotes)
+		if success {
+			c.Status(http.StatusOK)
+		} else {
+			c.JSON(
+				http.StatusInternalServerError,
+				model.ErrorResponse{Message: fmt.Sprintf("%v", err)},
+			)
+		}
+	}
+}
+
+func GetQuotes(c *gin.Context) {
+	var res model.GetQuotesResponse
+	bookId := c.Param("book_id")
+	ctx := handlerContext()
+	quotes := dao.GetQuotesByBookId(ctx, bookId)
+	if quotes == nil {
+		c.JSON(
+			http.StatusNoContent,
+			model.ErrorResponse{Message: "There no quotes"},
+		)
+	} else {
+		res.BookId = bookId
+		res.Quotes = quotes
+		c.JSON(
+			http.StatusOK,
+			res,
+		)
 	}
 }
 
@@ -131,6 +163,10 @@ func Pong(c *gin.Context) {
 		http.StatusOK,
 		pong,
 	)
+}
+
+func handlerContext() context.Context {
+	return context.Background()
 }
 
 func initLogger() {

@@ -21,6 +21,7 @@ func BookRoutes(r *gin.Engine) *gin.Engine {
 }
 
 func QuoteRoutes(r *gin.Engine) *gin.Engine {
+	r.GET("/api/quotes/:book_id", GetQuotes)
 	r.POST("/api/quotes/parse", ParseQuotes)
 	return r
 }

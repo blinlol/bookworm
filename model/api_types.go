@@ -25,9 +25,14 @@ type UpdateBookRequest struct {
 }
 
 type ParseQuotesRequest struct {
-	BookId 	string	`json:"book_id"`
-	Text	string	`json:"text"`
-	Separator	string	`json:"separator"`
+	BookId 		string		`json:"book_id"`
+	Text		string		`json:"text"`
+	Separator	string		`json:"separator"`
+}
+
+type GetQuotesResponse struct {
+	BookId	string		`json:"book_id"`
+	Quotes	[]*Quote	`json:"quotes"`
 }
 
 type PingResponse struct {

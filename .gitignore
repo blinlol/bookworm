@@ -29,3 +29,5 @@ todo
 cmd/ui/bin
 **/*_gen.go
 cmd/ui/dist
+
+**/__debug_bin*

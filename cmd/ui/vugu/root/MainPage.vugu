@@ -6,7 +6,7 @@
 
     <div vg-for='_, book := range c.Books'>
         <p vg-content='fmt.Sprint(book.Id, "---", book.Author, "---", book.Title)'></p>
-        <div vg-for='i, quote := range book.Quotes'>
+        <div vg-for='i, quote := range c.getBookQuotes(book.Id)'>
             <p vg-content='fmt.Sprint(i, ": ", quote.Text)'></p>
         </div>
     </div>
@@ -77,6 +77,27 @@ func fetchBooks() []*model.Book {
         return make([]*model.Book, 0)
     }
     return resp.Books
+}
+
+func (c *MainPage) getBookQuotes(id string) []*model.Quote{
+    res, err := http.Get(apiurl + "/quotes/" + id)
+    if err != nil {
+        log.Printf("Error fetching: %v", err)
+        return make([]*model.Quote, 0)
+    }
+    defer res.Body.Close()
+
+    var resp model.GetQuotesResponse
+    err = json.NewDecoder(res.Body).Decode(&resp)
+    if err != nil {
+        log.Printf("Error JSON decoding: %v", err)
+        return make([]*model.Quote, 0)
+    } else if resp.BookId != id {
+        log.Printf("resp.BookId != id: %s != %s", resp.BookId, id)
+        return make([]*model.Quote, 0)
+    }
+
+    return resp.Quotes
 }
 
 func (c *MainPage) HandleClick(event vugu.DOMEvent) {    

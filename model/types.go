@@ -4,7 +4,7 @@ type Book struct {
 	Id     string
 	Title  string
 	Author string
-	Quotes []*Quote
+	// Quotes []*Quote
 }
 
 type Quote struct {
