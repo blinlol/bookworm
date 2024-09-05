@@ -4,6 +4,8 @@ reset_testenv:
 	cd postgres && docker compose down
 	docker volume rm postgres_pg_data || echo no-volume
 	make testenv
+stop_testenv:
+	cd postgres && docker compose down
 
 
 
