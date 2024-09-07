@@ -1,8 +1,4 @@
 services:
-  # mongo:
-  #   image: mongodb/mongodb-community-server:latest
-  #   expose:
-  #     - 27017
   api:
     build:
       context: .
@@ -13,6 +9,18 @@ services:
       - docker.env
     networks:
       - postgres
+      - tg_to_api
+  tg:
+    build:
+      context: .
+      dockerfile: tg.dockerfile
+    env_file:
+      - docker.env
+      - .tgbot_token.env
+    environment:
+      - API_URI_FOR_UI=http://api:8081
+    networks:
+      - tg_to_api
   ui:
     build:
       context: .
@@ -44,4 +52,6 @@ volumes:
 
 networks:
   postgres:
+    driver: bridge
+  tg_to_api:
     driver: bridge

@@ -19,8 +19,15 @@ func VuguSetup(buildEnv *vugu.BuildEnv, eventEnv vugu.EventEnv) vugu.Builder {
 	component := &root.Root{}
 	buildEnv.WireComponent(component)
 
+
 	router.MustAddRouteExact(
-		"/",
+		"/navpage",
+		vgrouter.RouteHandlerFunc(func(rm *vgrouter.RouteMatch){
+			component.Body = &root.NavPage{}
+		}),
+	)
+	router.MustAddRouteExact(
+		"/ui",
 		vgrouter.RouteHandlerFunc(func(rm *vgrouter.RouteMatch){
 			component.Body = &root.MainPage{}
 		}),

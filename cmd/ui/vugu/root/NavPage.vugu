@@ -1,0 +1,15 @@
+<div>
+<button @click='c.Navigate("/ui", nil)'>Home</button>
+<button @click='c.Navigate("/page1", nil)'>Page 1</button>
+</div>
+
+<<script type="application/x-go">
+
+import (
+    "github.com/vugu/vgrouter"
+)
+
+type NavPage struct{
+    vgrouter.NavigatorRef
+}
+</script>
