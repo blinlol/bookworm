@@ -1,12 +1,11 @@
 package model
 
 type Book struct {
-	Id     string
-	Title  string
-	Author string
-	// Quotes []*Quote
+	Id     string	`json:"id"`
+	Title  string	`json:"title"`
+	Author string	`json:"author"`
 }
 
 type Quote struct {
-	Text	string
+	Text	string	`json:"text"`
 }
